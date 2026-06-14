@@ -1,0 +1,109 @@
+*goopy.txt*    A Neovim plugin manager
+
+==============================================================================
+CONTENTS                                                       *goopy-contents*
+
+    1. Introduction ............... |goopy-introduction|
+    2. Setup ....................... |goopy-setup|
+    3. Plugin Spec ................. |goopy-spec|
+    4. Loading Triggers ............ |goopy-loading|
+    5. Hooks ........................ |goopy-hooks|
+    6. API .......................... |goopy-api|
+    7. Commands ..................... |goopy-commands|
+
+==============================================================================
+1. Introduction                                            *goopy-introduction*
+
+goopy.nvim is a Neovim plugin manager: it clones plugins from git,
+manages a dependency graph and lazy-loading, and keeps an optional
+lockfile for reproducible installs.
+
+==============================================================================
+2. Setup                                                          *goopy-setup*
+
+>lua
+    require("goopy").setup({
+      plugins = {
+        "nvim-lua/plenary.nvim",
+        {
+          "neovim/nvim-lspconfig",
+          event = "VeryLazy",
+          dependencies = { "nvim-lua/plenary.nvim" },
+          config = function(opts)
+            require("lspconfig")
+          end,
+        },
+      },
+    })
+<
+
+==============================================================================
+3. Plugin Spec                                                     *goopy-spec*
+
+repo            github "owner/repo", or full git URL
+name            custom name (defaults to repo basename)
+dependencies    list of plugin specs or names, loaded first
+optional        mark as an optional dependency
+version         version constraint (semver string)
+branch          git branch to track
+commit          pin to a specific commit
+tag             git tag to checkout
+priority        higher loads first among ready plugins (default 50)
+enabled         boolean or function() -> boolean
+
+==============================================================================
+4. Loading Triggers                                             *goopy-loading*
+
+event           autocmd event(s), e.g. "BufReadPre" or "User CustomEvent"
+cmd              user command name(s) that trigger load
+ft               filetype(s) that trigger load
+keys             keymap(s) that trigger load
+module           require() module name(s) that trigger load
+startup          load eagerly at startup (not lazy)
+manual           never auto-load; only via goopy.load()
+
+If none of the above are set, the plugin loads at startup.
+
+==============================================================================
+5. Hooks                                                           *goopy-hooks*
+
+init(plugin)     called before the plugin is added to runtimepath
+config(opts)     called after the plugin loads (or define your own setup)
+build            string (shell cmd in plugin dir, or ":VimCommand")
+                 or function(plugin), run after install/update
+uninstall(plugin) called before the plugin is removed
+
+==============================================================================
+6. API                                                                *goopy-api*
+
+setup(opts)                  initialize goopy
+add(spec) / use(spec)        register a plugin at runtime
+remove(name)                 unregister a plugin from config
+install([name], [cb])        install missing plugins
+update([name], [cb])         update installed plugins
+sync([cb])                   install/update/clean to match config
+clean()                       remove unused plugin directories
+load(name)                    load a plugin immediately
+reload(name)                  reload a plugin (clears its modules)
+list()                        get normalized plugin objects
+list_names()                  get plugin names
+status()                       open status floating window
+log()                          open log floating window
+profile()                       open load-time profile window
+restore([cb])                  restore plugins to lockfile commits
+
+==============================================================================
+7. Commands                                                       *goopy-commands*
+
+:GoopyInstall                install missing plugins
+:GoopyUpdate [name]          update all plugins, or one by name
+:GoopySync                    install/update/clean to match config
+:GoopyClean                   remove unused plugins
+:GoopyReload {name}           reload a plugin
+:GoopyStatus                  show plugin status
+:GoopyLog                      show goopy log
+:GoopyProfile                  show plugin load time profile
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
+
